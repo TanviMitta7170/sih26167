@@ -1,0 +1,38 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+build/
+.env*.local
+.env
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Database / Geospatial / Local Files
+*.db
+*.db-journal
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Raster temp files (generated during analysis)
+*.aligned.tif
+*.sar_aligned.tif
+backend/samples/*.tif
