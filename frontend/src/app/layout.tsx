@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SATQUERY AI - Ask Earth. Get the Evidence.",
+  title: "VyomDrishti AI - Ask Earth. Get the Evidence.",
   description: "An agentic remote-sensing vision-language system for reasoning over optical, SAR, and time-series satellite imagery.",
 };
 

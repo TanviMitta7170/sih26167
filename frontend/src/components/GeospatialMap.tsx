@@ -68,16 +68,18 @@ export default function GeospatialMap({
     import("leaflet").then((L) => {
       LRef.current = L;
 
-      // Fix default marker icon issues in Next.js
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      // Fix default marker icon issues in Next.js / Webpack
+      // Must reassign _getIconUrl to undefined to prevent Webpack from breaking it
+      (L.Icon.Default.prototype as any)._getIconUrl = undefined;
       L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+        iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
-      // Initialize map instance
+      // Initialize map instance — guard against double-init (React StrictMode)
       if (!mapDivRef.current) return;
+      if (mapRef.current) return; // already initialized
       mapInstance = L.map(mapDivRef.current, {
         zoomControl: false,
         attributionControl: false

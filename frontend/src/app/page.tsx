@@ -474,7 +474,7 @@ export default function AppOrchestrator() {
                     className="text-2xl font-bold text-[#ffcb05] select-none tracking-tight" 
                     style={{ fontFamily: "'Brush Script MT', 'Comic Sans MS', cursive" }}
                   >
-                    satquery
+                    VyomDrishti
                   </span>
                 </div>
               </div>
@@ -523,7 +523,7 @@ export default function AppOrchestrator() {
               className="text-2xl md:text-3xl font-bold tracking-[0.5em] text-black uppercase select-none transition-all duration-75 font-sans pl-[0.5em]"
               style={{ opacity: 0.9 }}
             >
-              SATQUERY
+              VyomDrishti
             </h1>
             <span 
               id="canvas-overlay-sub"
@@ -711,7 +711,7 @@ export default function AppOrchestrator() {
               <span className="font-mono text-xs text-accent-blue font-semibold uppercase tracking-wider">PRODUCT FEATURES</span>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-text-primary">Multi-Sensor Analytical Modalities</h2>
               <p className="text-sm text-text-secondary max-w-2xl leading-relaxed">
-                SatQuery translates raw electromagnetic observations and radar backscatter into queryable vector intelligence without requiring complex desktop GIS setups.
+                VyomDrishti translates raw electromagnetic observations and radar backscatter into queryable vector intelligence without requiring complex desktop GIS setups.
               </p>
             </div>
 
@@ -778,7 +778,7 @@ export default function AppOrchestrator() {
               <span className="font-mono text-xs text-accent-blue font-semibold uppercase tracking-wider">SYSTEM SPECIFICATIONS</span>
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-text-primary">Engineered for Real-World Remote Sensing</h2>
               <p className="text-sm text-text-secondary max-w-2xl leading-relaxed">
-                Unlike generic vision LLMs, SatQuery utilizes purpose-built spatial adapters trained directly on multispectral bands and raw backscatter tensors.
+                Unlike generic vision LLMs, VyomDrishti utilizes purpose-built spatial adapters trained directly on multispectral bands and raw backscatter tensors.
               </p>
             </div>
 
@@ -816,7 +816,7 @@ export default function AppOrchestrator() {
               <span>DEVELOPER SPECIFICATIONS & LOGISTICAL BOUNDS</span>
             </div>
             <p className="text-xs text-text-secondary leading-relaxed">
-              SatQuery is engineered in accordance with Smart India Hackathon criteria. The models register real-time coordinate transformations using 
+              VyomDrishti is engineered in accordance with Smart India Hackathon criteria. The models register real-time coordinate transformations using
               <code className="text-accent-teal bg-background-primary px-1 py-0.5 rounded-sm mx-1">rasterio</code> 
               and <code className="text-accent-teal bg-background-primary px-1 py-0.5 rounded-sm mx-1">GDAL</code>, 
               producing direct PNG representations of coordinate masks overlayed directly over interactive base maps. 
@@ -832,7 +832,7 @@ export default function AppOrchestrator() {
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-3">
                 <div className="w-7 h-7 flex items-center justify-center border border-accent-blue/40 rounded-sm"><div className="w-1.5 h-1.5 bg-accent-blue" /></div>
-                <span className="font-mono text-sm font-bold tracking-wider text-text-primary">SATQUERY.AI</span>
+                <span className="font-mono text-sm font-bold tracking-wider text-text-primary">VyomDrishti.AI</span>
               </div>
               <p className="text-xs text-text-secondary leading-relaxed max-w-xs">
                 Next-generation remote sensing intelligence. Agentic visual validation for multispectral earth observation.
@@ -855,7 +855,7 @@ export default function AppOrchestrator() {
             </div>
           </div>
           <div className="max-w-7xl mx-auto px-6 border-t border-border-subtle/50 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-mono text-text-muted">
-            <span>© 2026 SATQUERY AI. ALL RIGHTS RESERVED.</span>
+            <span>© 2026 VyomDrishti AI. ALL RIGHTS RESERVED.</span>
             <span>BUILT FOR PREMIUM GEOSPATIAL ANALYSIS AND RESEARCH</span>
           </div>
         </footer>
@@ -875,7 +875,7 @@ export default function AppOrchestrator() {
         {/* Top Logo Section */}
         <div className="p-5 border-b border-[#2c3f31] flex flex-col text-left">
           <span className="font-sans text-lg font-bold tracking-tight text-white leading-none">
-            SatQuery AI
+            VyomDrishti AI
           </span>
           <span className="text-[9px] text-slate-400 font-mono tracking-tighter mt-1.5 leading-none">
             Ask. Analyze. Understand Earth.
@@ -1023,7 +1023,7 @@ export default function AppOrchestrator() {
           </button>
           
           <div className="flex items-center" onClick={() => setView("landing")}>
-            <span className="font-sans text-xs font-bold text-text-primary">SatQuery AI</span>
+            <span className="font-sans text-xs font-bold text-text-primary">VyomDrishti AI</span>
           </div>
           
           <div className="w-7 h-7 rounded-full bg-accent-purple/10 text-accent-purple font-bold flex items-center justify-center text-[10px] border border-accent-purple/20">

@@ -36,7 +36,7 @@ export default function HistoryReports({
     return matchesSearch && matchesFilter;
   });
 
-  const activeRecord = analyses.find(a => a.id === selectedAnalysisId) || filtered[0] || null;
+  const activeRecord = analyses.find(a => a.id === selectedAnalysisId) || null;
 
   // Simulate report downloads
   const handleDownload = (format: "pdf" | "csv" | "tiff") => {
@@ -46,7 +46,7 @@ export default function HistoryReports({
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `satquery_report_${activeRecord.id}.${format === "tiff" ? "tif" : format}`;
+    link.download = `VyomDrishti_report_${activeRecord.id}.${format === "tiff" ? "tif" : format}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -171,7 +171,7 @@ export default function HistoryReports({
           <div className="flex flex-col gap-3 font-mono text-[10px] bg-background-primary p-3 border border-border-subtle rounded-sm">
             <div className="flex items-center gap-2 text-text-secondary">
               <MapPin className="w-3.5 h-3.5 text-accent-red-light" />
-              <span className="font-bold text-text-primary">Delhi NCR Overlap Zone</span>
+              <span className="font-bold text-text-primary">{activeRecord.name}</span>
             </div>
             <div className="flex justify-between border-t border-border-subtle/30 pt-2">
               <span className="text-text-secondary">CRS Standard:</span>
@@ -183,7 +183,7 @@ export default function HistoryReports({
             </div>
             <div className="flex justify-between">
               <span className="text-text-secondary">Model engine:</span>
-              <span className="text-text-primary font-bold text-accent-teal">ChangeFormer v2</span>
+              <span className="text-text-primary font-bold text-accent-teal">{activeRecord.mode === "fusion" ? "FusionFormer v1" : activeRecord.mode === "change" ? "ChangeFormer v2" : "SingleBand Indexer"}</span>
             </div>
           </div>
 

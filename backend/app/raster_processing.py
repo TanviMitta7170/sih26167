@@ -27,7 +27,7 @@ BIGEARTHNET_CLASSES = (
     "Coastal lagoons, Estuaries, Sea and ocean"
 )
 
-RS_SYSTEM_PROMPT = f"""You are SatQuery AI, a domain-adapted remote-sensing vision-language model \
+RS_SYSTEM_PROMPT = f"""You are VyomDrishti AI, a domain-adapted remote-sensing vision-language model \
 fine-tuned on the BigEarthNet multi-label land-use/land-cover dataset.
 
 Your valid land-cover class vocabulary is:
@@ -134,6 +134,40 @@ def compute_confidence(mask: np.ndarray, mode: str, label: str) -> float:
 
     raw = 0.55 + coverage_score * 0.30 + mode_bonus + label_bonus
     return round(min(97.0, max(50.0, raw * 100)), 1)
+
+def compute_scene_composition(file_path):
+    """
+    Real spectral land-cover breakdown of the whole frame (water/vegetation/bare-or-built %),
+    used to ground VLM captioning/VQA prompts in actual pixel data instead of letting the
+    model free-associate off a tiny downscaled preview.
+    """
+    with rasterio.open(file_path) as src:
+        has_nir = src.count >= 4
+        r = src.read(1).astype(float)
+        g = src.read(2).astype(float) if src.count >= 2 else r
+        b = src.read(3).astype(float) if src.count >= 3 else r
+
+        if has_nir:
+            nir = src.read(4).astype(float)
+            denom_ndvi = nir + r; denom_ndvi[denom_ndvi == 0] = 1e-5
+            ndvi = (nir - r) / denom_ndvi
+            denom_ndwi = g + nir; denom_ndwi[denom_ndwi == 0] = 1e-5
+            ndwi = (g - nir) / denom_ndwi
+            water_mask = ndwi > 0.2
+            veg_mask = ndvi > 0.35
+        else:
+            denom = r + g + b; denom[denom == 0] = 1e-5
+            greenness = (g - r) / denom
+            water_mask = (b > r * 1.15) & (b > g * 1.05) & (b > 50)
+            veg_mask = greenness > 0.05
+
+        total_px = r.size
+        water_pct = round(100.0 * water_mask.sum() / total_px, 1)
+        veg_pct = round(100.0 * veg_mask.sum() / total_px, 1)
+        other_pct = round(max(0.0, 100.0 - water_pct - veg_pct), 1)
+
+        return {"water_pct": water_pct, "vegetation_pct": veg_pct, "bare_or_built_pct": other_pct}
+
 
 def get_crs_and_bounds_wgs84(dataset):
     """Get the dataset's CRS and bounding box reprojected to EPSG:4326."""
@@ -275,6 +309,16 @@ def polygonize_mask(mask, transform, src_crs, aoi_coords=None):
                 geom_shapes.append(shp_wgs84)
     return geom_shapes
 
+def compute_frame_area_km2(src):
+    """Total raster frame area in km², using the same lat-corrected degree->km
+    conversion as area_from_shapes so area/percentage stay consistent."""
+    if src.crs and src.crs.is_projected:
+        px_area_km2 = (src.res[0] * src.res[1]) / 1e6
+    else:
+        lat_c = (src.bounds.top + src.bounds.bottom) / 2.0
+        px_area_km2 = src.res[0] * src.res[1] * 111.1 * (111.1 * np.cos(np.radians(lat_c)))
+    return src.width * src.height * px_area_km2
+
 def area_from_shapes(geom_shapes):
     """Compute total area in km² and serialisable feature coordinate lists."""
     total_area_km2 = 0.0
@@ -322,6 +366,7 @@ def run_single_analysis(file_path, query_text="", aoi_coords=None):
     metric_name = "N/A"
     geom_shapes = []
     total_area_km2 = 0.0
+    frame_area_km2 = 0.0
     features = []
     mask = None
 
@@ -331,6 +376,7 @@ def run_single_analysis(file_path, query_text="", aoi_coords=None):
 
         with rasterio.open(file_path) as src:
             has_nir = src.count >= 4
+            frame_area_km2 = compute_frame_area_km2(src)
 
             if target_water:
                 label = "water"
@@ -342,7 +388,7 @@ def run_single_analysis(file_path, query_text="", aoi_coords=None):
                     denom = green + nir
                     denom[denom == 0] = 1e-5
                     ndwi = (green - nir) / denom
-                    mask = (ndwi > 0.0).astype(np.uint8)
+                    mask = (ndwi > 0.2).astype(np.uint8)
                     trace.append({"time": "+1.1s", "message": "Calculated Normalized Difference Water Index (NDWI) using Band 2 & Band 4.", "status": "success"})
                 else:
                     r = src.read(1).astype(float)
@@ -416,19 +462,37 @@ def run_single_analysis(file_path, query_text="", aoi_coords=None):
                     f"and integrating the calculated area ({total_area_km2:.2f} km²). "
                     f"Use the BigEarthNet class vocabulary where applicable."
                 )
-            elif is_captioning:
-                prompt_text = (
-                    f'User request: "{query_text}" (Scene Caption)\n\n'
-                    f"Write a concise, detailed remote-sensing scene description. "
-                    f"Identify LULC classes from the BigEarthNet vocabulary that are visible. "
-                    f"One paragraph max. Do not hallucinate."
-                )
             else:
-                prompt_text = (
-                    f'User question: "{query_text}"\n\n'
-                    f"Answer directly and professionally based strictly on what is visible "
-                    f"in the satellite image. Reference BigEarthNet LULC classes where relevant."
+                composition = compute_scene_composition(file_path)
+                dominant_class = max(
+                    [("water", composition["water_pct"]), ("vegetation", composition["vegetation_pct"]),
+                     ("bare ground / built-up", composition["bare_or_built_pct"])],
+                    key=lambda kv: kv[1]
+                )[0]
+                composition_text = (
+                    f"Computed spectral composition of the full frame (ground truth, not a guess):\n"
+                    f"- Water: {composition['water_pct']}%\n"
+                    f"- Vegetation: {composition['vegetation_pct']}%\n"
+                    f"- Bare ground / built-up / other: {composition['bare_or_built_pct']}%\n\n"
+                    f"The dominant class by area is '{dominant_class}' — lead with it. Rank the other "
+                    f"classes by their percentage, not by how visually striking they look. Do not invent "
+                    f"specific objects, counts, or landmarks (e.g. buildings, ships, airports) that this "
+                    f"composition does not support."
                 )
+                if is_captioning:
+                    prompt_text = (
+                        f'User request: "{query_text}" (Scene Caption)\n\n'
+                        f"{composition_text}\n\n"
+                        f"Write a concise, detailed remote-sensing scene description. "
+                        f"Identify LULC classes from the BigEarthNet vocabulary that are visible. "
+                        f"One paragraph max."
+                    )
+                else:
+                    prompt_text = (
+                        f'User question: "{query_text}"\n\n'
+                        f"{composition_text}\n\n"
+                        f"Answer directly and professionally. Reference BigEarthNet LULC classes where relevant."
+                    )
 
             gemini_response = call_gemini_api(prompt_text, [tmp_path])
             if gemini_response:
@@ -455,7 +519,7 @@ def run_single_analysis(file_path, query_text="", aoi_coords=None):
         "findings": findings,
         "confidence": confidence_val,
         "area_km2": total_area_km2,
-        "percentage": (total_area_km2 / 10.0) * 100.0 if total_area_km2 > 0 else 0.0,
+        "percentage": (total_area_km2 / frame_area_km2) * 100.0 if total_area_km2 > 0 and frame_area_km2 > 0 else 0.0,
         "maskCoordinates": features,
         "execution_trace": trace
     }
@@ -506,7 +570,8 @@ def run_change_analysis(file1_path, file2_path, query_text="", aoi_coords=None):
 
             features, total_area_km2 = area_from_shapes(geom_shapes)
             confidence_val = compute_confidence(mask, "change", "urban")
-            percentage = (total_area_km2 / 11.5) * 100.0
+            frame_area_km2 = compute_frame_area_km2(src1)
+            percentage = (total_area_km2 / frame_area_km2) * 100.0 if frame_area_km2 > 0 else 0.0
 
             trace.append({"time": "+1.6s", "message": f"Polygonized difference layer: Extracted {len(features)} change contours.", "status": "success"})
             trace.append({"time": "+1.9s", "message": f"Area calculation: {total_area_km2:.4f} km² changed.", "status": "success"})
@@ -615,7 +680,7 @@ def run_fusion_analysis(file1_path, file2_path, query_text="", aoi_coords=None):
                 # Built-up index: low NDVI + low NDWI + bright reflectance
                 optical_buildup = ((ndvi < 0.2) & (ndwi < 0.0) & (r_opt > 80)).astype(np.uint8)
                 optical_veg     = (ndvi > 0.35).astype(np.uint8)
-                optical_water   = (ndwi > 0.0).astype(np.uint8)
+                optical_water   = (ndwi > 0.2).astype(np.uint8)
                 trace.append({"time": "+1.0s", "message": "Optical: Computed NDVI, NDWI, and Built-Up Index from Band 1/2/4.", "status": "success"})
             else:
                 # RGB-only fallback
@@ -683,7 +748,8 @@ def run_fusion_analysis(file1_path, file2_path, query_text="", aoi_coords=None):
             geom_shapes = polygonize_mask(consensus_mask, opt.transform, opt.crs, aoi_coords)
             features, total_area_km2 = area_from_shapes(geom_shapes)
             confidence_val = compute_confidence(consensus_mask, "fusion", fusion_label.split()[0])
-            percentage = (total_area_km2 / 10.0) * 100.0
+            frame_area_km2 = compute_frame_area_km2(opt)
+            percentage = (total_area_km2 / frame_area_km2) * 100.0 if frame_area_km2 > 0 else 0.0
 
             trace.append({"time": "+2.0s", "message": f"Polygonized consensus mask: {len(features)} fused vector shapes.", "status": "success"})
             trace.append({"time": "+2.2s", "message": f"Fused area: {total_area_km2:.4f} km².", "status": "success"})

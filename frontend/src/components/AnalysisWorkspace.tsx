@@ -91,7 +91,7 @@ export default function AnalysisWorkspace({
         resolution: "6.5 m / pixel",
         bands: "Red, Green, Blue, NIR",
         dimensions: "512 x 512",
-        src: "http://127.0.0.1:8000/api/v1/samples/delhi_before.png",
+        src: "http://127.0.0.1:8002/api/v1/samples/delhi_before.png",
         bounds: defaultBounds,
         id: "samples/delhi_before.tif"
       });
@@ -103,7 +103,7 @@ export default function AnalysisWorkspace({
         resolution: "6.5 m / pixel",
         bands: "Red, Green, Blue, NIR",
         dimensions: "512 x 512",
-        src: "http://127.0.0.1:8000/api/v1/samples/delhi_after.png",
+        src: "http://127.0.0.1:8002/api/v1/samples/delhi_after.png",
         bounds: defaultBounds,
         id: "samples/delhi_after.tif"
       });
@@ -116,7 +116,7 @@ export default function AnalysisWorkspace({
         resolution: "6.5 m / pixel",
         bands: "Red, Green, Blue, NIR",
         dimensions: "512 x 512",
-        src: "http://127.0.0.1:8000/api/v1/samples/delhi_before.png",
+        src: "http://127.0.0.1:8002/api/v1/samples/delhi_before.png",
         bounds: defaultBounds,
         id: "samples/delhi_before.tif"
       });
@@ -143,7 +143,7 @@ export default function AnalysisWorkspace({
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/upload", {
+      const response = await fetch("http://127.0.0.1:8002/api/v1/upload", {
         method: "POST",
         body: formData
       });
@@ -243,7 +243,7 @@ export default function AnalysisWorkspace({
     }, 500);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/v1/analyze", {
+      const response = await fetch("http://127.0.0.1:8002/api/v1/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

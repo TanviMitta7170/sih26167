@@ -1,11 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  reactStrictMode: false,
   output: 'export',
   images: {
     unoptimized: true,
   },
   assetPrefix: '',
+  transpilePackages: ['leaflet'],
 };
 
 export default nextConfig;

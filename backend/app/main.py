@@ -60,7 +60,7 @@ class AnalyzeRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to SATQUERY AI Backend API"}
+    return {"message": "Welcome to VyomDrishti AI Backend API"}
 
 # Health check endpoints
 @app.get("/health")
@@ -109,7 +109,7 @@ def upload_raster_file(file: UploadFile = File(...)):
         
         # Set preview URL
         meta["id"] = saved_filename
-        meta["preview_url"] = f"http://127.0.0.1:8000/api/v1/uploads/{preview_filename}"
+        meta["preview_url"] = f"http://127.0.0.1:8002/api/v1/uploads/{preview_filename}"
         
         logger.info(f"Successfully processed upload. Metadata: {meta}")
         return meta
