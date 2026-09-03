@@ -111,8 +111,11 @@ Confidence is computed from actual mask statistics — not hardcoded. Near-empty
 ## PS details
 
 Problem ID - SIH26167
+
 Title - SatQuery AI — Interactive Vision-Language Assistant for Multimodal Remote Sensing Image Analysis
+
 Organisation - ISRO
+
 Theme - Space Technology
 
 ---
